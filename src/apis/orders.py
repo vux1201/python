@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from apis.deps import get_db, get_current_user, get_current_admin
+from core.pagination import PagedResponseSchema, PageParams, paginate
 from models.order import Order, OrderItem
 from models.user import User
 import schemas
@@ -26,18 +27,17 @@ async def read_orders_me(
 
 @router.get(
     "/",
-    response_model=list[schemas.OrderAdmin],
+    response_model=PagedResponseSchema[schemas.OrderAdmin],
     dependencies=[Depends(get_current_admin)],
     description="Admin lấy tất cả order",
 )
 async def read_orders(
     *,
     db: Session = Depends(get_db),
-    skip: int = 1,
-    limit: int = 10,
+    page_params: PageParams = Depends(),
 ):
-    orders = crud.order.get_multi(db=db, skip=skip, limit=limit)
-    return orders
+    query = crud.order.get_multi_filter()
+    return paginate(db, query, page_params, schemas.OrderAdmin)
 
 
 @router.post(
@@ -58,15 +58,13 @@ async def create_order(
         - price: giá trị tổng của mẫu này (qty * product_variant.price)
     """
     code = "".join(
-        random.choices(string.digits, k=6) +
-        random.choices(string.ascii_uppercase, k=8)
+        random.choices(string.digits, k=6) + random.choices(string.ascii_uppercase, k=8)
     )
     order = Order(code=code, status=0, user_id=current_user.id, total=0)
     total_price = 0
     for item in order_items_in:
         total_price += item.price
-        order_item = OrderItem(
-            product_variant_id=item.product_variant_id, qty=item.qty)
+        order_item = OrderItem(product_variant_id=item.product_variant_id, qty=item.qty)
         order.order_items.append(order_item)
     setattr(order, "total", total_price)
     db.add(order)
