@@ -1,0 +1,15 @@
+{
+  "editor.tabSize": 4,
+  "python.formatting.provider": "none",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  },
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
+  "cSpell.words": [
+    "fastapi",
+    "sqladmin",
+    "sqlalchemy"
+  ]
+}

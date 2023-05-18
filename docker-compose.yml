@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  api:
+    build:
+      context: ./src
+      dockerfile: ../Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - docker-compose.env
+    volumes:
+      - images:/app/media
+      - ./src/apis:/app/apis
+      - ./src/crud:/app/crud
+      - ./src/db:/app/db
+      - ./src/models:/app/models
+      - ./src/schemas:/app/schemas
+      - ./src/utils:/app/utils
+      - ./src/alembic:/app/alembic
+
+  db:
+    image: postgres:11-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - docker-compose.env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+  images:
